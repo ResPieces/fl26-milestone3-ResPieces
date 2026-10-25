@@ -10,21 +10,23 @@ namespace aiws::gui
 
     int SearchResultModel::rowCount(const QModelIndex &parent) const
     {
-        if (parent.isValid() {
-                return 0;
-            })
+        if (parent.isValid())
+        {
+            return 0;
+        }
 
-            return results_.size()
+        return results_.size();
     }
 
     int SearchResultModel::columnCount(const QModelIndex &parent) const
     {
 
-        if (parent.isValid() {
-                return 0;
-            })
+        if (parent.isValid())
+        {
+            return 0;
+        }
 
-            return 5;
+        return 5;
     }
 
     QVariant SearchResultModel::data(const QModelIndex &index, int role) const

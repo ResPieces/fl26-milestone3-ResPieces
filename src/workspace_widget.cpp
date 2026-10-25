@@ -50,8 +50,8 @@ namespace aiws::gui
 
         // Combine layouts
         auto *main_layout = new QHBoxLayout(this);
-        main_layout->addLayout(workspace_left);
-        main_layout->addLayout(workspace_right);
+        main_layout->addLayout(workspace_left, 1);
+        main_layout->addLayout(workspace_right, 1);
 
         // Establish the initial state.
         build_corpus_button_->setEnabled(false);
@@ -64,7 +64,8 @@ namespace aiws::gui
                 this, &WorkspaceWidget::build_corpus_requested);
 
         // Notify the owner when the selected document row changes.
-        connect(document_list_, &QListWidget::currentRowChanged, this, &WorkspaceWidget::document_selected);
+        connect(document_list_, &QListWidget::currentRowChanged,
+                this, &WorkspaceWidget::document_selected);
     }
 
     void WorkspaceWidget::add_document(const QString &title)
