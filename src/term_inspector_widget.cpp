@@ -56,39 +56,56 @@ namespace aiws::gui
 
     void TermInspectorWidget::set_inspection_enabled(bool enabled)
     {
-        // TODO
-        (void)enabled; // To suppress unused-parameter warning.
+        inspect_button_->setEnabled(enabled);
     }
 
     void TermInspectorWidget::set_selected_chunk(const QString &chunk_id)
     {
-        // TODO
-        (void)chunk_id; // To suppress unused-parameter warning.
+        selected_chunk_id_ = chunk_id;
     }
 
     void TermInspectorWidget::set_statistics(std::size_t document_frequency,
                                              bool has_chunk_frequency,
                                              std::size_t chunk_frequency)
     {
-        // TODO
-        (void)document_frequency;  // To suppress unused-parameter warning.
-        (void)has_chunk_frequency; // To suppress unused-parameter warning.
-        (void)chunk_frequency;     // To suppress unused-parameter warning.
+        document_frequency_value_->setText(
+            QString::number(static_cast<qulonglong>(document_frequency)));
+
+        if (has_chunk_frequency)
+        {
+            chunk_frequency_value_->setText(
+                QString::number(static_cast<qulonglong>(chunk_frequency)));
+        }
+        else
+        {
+            chunk_frequency_value_->setText("-");
+        }
     }
 
     void TermInspectorWidget::clear_statistics()
     {
-        // TODO
+        document_frequency_value_->setText("-");
+        chunk_frequency_value_->setText("-");
     }
 
     void TermInspectorWidget::reset()
     {
-        // TODO
+        term_edit_->clear();
+        selected_chunk_id_.clear();
+        clear_statistics();
+        set_inspection_enabled(false);
     }
 
     void TermInspectorWidget::request_inspection()
     {
-        // TODO
+        const QString term = term_edit_->text().trimmed();
+
+        if (term.isEmpty() || !inspect_button_->isEnabled())
+        {
+            return;
+        }
+
+        emit term_inspection_requested(term, selected_chunk_id_);
     }
 
 } // namespace aiws::gui

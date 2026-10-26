@@ -39,7 +39,6 @@ namespace aiws::gui
         workspace_left->addWidget(corpus_status_label_);
 
         // Right Side of Workspace
-
         auto *workspace_right_top = new QHBoxLayout;
         workspace_right_top->addWidget(new QLabel("Selected Document", this));
         workspace_right_top->addWidget(document_title_label_);
@@ -48,22 +47,18 @@ namespace aiws::gui
         workspace_right->addLayout(workspace_right_top);
         workspace_right->addWidget(document_text_);
 
-        // Combine layouts
         auto *main_layout = new QHBoxLayout(this);
         main_layout->addLayout(workspace_left, 1);
         main_layout->addLayout(workspace_right, 1);
 
-        // Establish the initial state.
         build_corpus_button_->setEnabled(false);
 
-        // Forward button clicks through the component's signals.
         connect(add_document_button_, &QPushButton::clicked,
                 this, &WorkspaceWidget::add_document_requested);
 
         connect(build_corpus_button_, &QPushButton::clicked,
                 this, &WorkspaceWidget::build_corpus_requested);
 
-        // Notify the owner when the selected document row changes.
         connect(document_list_, &QListWidget::currentRowChanged,
                 this, &WorkspaceWidget::document_selected);
     }

@@ -31,6 +31,12 @@ namespace aiws::gui
 
     QVariant SearchResultModel::data(const QModelIndex &index, int role) const
     {
+
+        if (role != Qt::DisplayRole)
+        {
+            return {};
+        }
+
         if (!index.isValid() || index.row() < 0 || index.row() >= results_.size() || index.column() < 0 || index.column() >= columnCount())
         {
             return {};
@@ -43,19 +49,19 @@ namespace aiws::gui
         {
             return index.row() + 1;
         }
-        else if (column == 2)
+        else if (column == 1)
         {
             return QString::fromStdString(result.document_id);
         }
-        else if (column == 3)
+        else if (column == 2)
         {
             return static_cast<qlonglong>(result.chunk_sequence);
         }
-        else if (column == 4)
+        else if (column == 3)
         {
             return result.score;
         }
-        else if (column == 5)
+        else if (column == 4)
         {
             return QString::fromStdString(result.text);
         }
@@ -69,6 +75,12 @@ namespace aiws::gui
                                            Qt::Orientation orientation,
                                            int role) const
     {
+
+        if (role != Qt::DisplayRole)
+        {
+            return {};
+        }
+
         if (orientation == Qt::Horizontal)
         {
             if (section == 0)

@@ -2016,7 +2016,6 @@
 /mnt/src/search_result_model.cpp
 /mnt/src/term_inspector_widget.cpp
 /mnt/src/search_widget.cpp
-/mnt/src/context_widget.cpp
 /mnt/include/aiws/gui/main_window.hpp
  mmc:Q_OBJECT
  mdp:/mnt/build/ai_workspace_m3_autogen/moc_predefs.h
@@ -2434,3 +2433,4 @@
  mdp:/usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h
  mdp:/usr/lib/gcc/x86_64-linux-gnu/13/include/stdbool.h
  mdp:/usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h
+/mnt/src/context_widget.cpp

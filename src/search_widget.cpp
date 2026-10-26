@@ -33,7 +33,7 @@ namespace aiws::gui
 
         result_model_ = new SearchResultModel(this);
         results_view_ = new QTableView(this);
-        results_view_->setModel(result_model_); // 1. model first
+        results_view_->setModel(result_model_);
         results_view_->setSelectionBehavior(QAbstractItemView::SelectRows);
         results_view_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
@@ -55,7 +55,7 @@ namespace aiws::gui
 
         auto *query_layout = new QHBoxLayout;
         query_layout->addWidget(query_label);
-        query_layout->addWidget(query_edit_, 2);
+        query_layout->addWidget(query_edit_, 1);
         query_layout->addWidget(results_label);
         query_layout->addWidget(result_count_spin_);
         query_layout->addWidget(search_button_);
@@ -73,7 +73,7 @@ namespace aiws::gui
         auto *main_layout = new QVBoxLayout(this);
         main_layout->addLayout(query_layout);
         main_layout->addWidget(results_view_);
-        main_layout->addLayout(selected_layout, 2);
+        main_layout->addLayout(selected_layout);
         main_layout->addWidget(selected_result_text_);
 
         connect(query_edit_, &QLineEdit::textChanged, this, &SearchWidget::query_changed);
@@ -164,17 +164,17 @@ namespace aiws::gui
             return;
         }
 
-        QString details;
-        details += QString("Document: %1\n")
-                       .arg(QString::fromStdString(result->document_id));
-        details += QString("Chunk: %1\n")
-                       .arg(static_cast<qulonglong>(result->chunk_sequence));
-        details += QString("Score: %1\n\n")
-                       .arg(result->score, 0, 'g', 12);
-        details += "Text:\n";
-        details += QString::fromStdString(result->text);
+        QString info;
+        info += QString("Document: %1\n")
+                    .arg(QString::fromStdString(result->document_id));
+        info += QString("Chunk: %1\n")
+                    .arg(static_cast<qulonglong>(result->chunk_sequence));
+        info += QString("Score: %1\n\n")
+                    .arg(result->score, 0, 'g', 12);
+        info += "Text:\n";
+        info += QString::fromStdString(result->text);
 
-        selected_result_text_->setPlainText(details);
+        selected_result_text_->setPlainText(info);
         view_source_button_->setEnabled(true);
 
         const QString chunk_id =

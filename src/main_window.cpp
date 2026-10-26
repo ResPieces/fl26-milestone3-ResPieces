@@ -165,6 +165,8 @@ namespace aiws::gui
     {
         processing_core_.rebuild(workspace_);
 
+        corpus_current_ = true;
+        status_label_->setText("Corpus Built Successfully");
         workspace_widget_->set_corpus_status("Corpus: Built");
         update_action_states();
     }
@@ -182,15 +184,33 @@ namespace aiws::gui
 
     void MainWindow::search_requested(const QString &query, int k)
     {
-        // TODO
-        (void)query; // To suppress unused-parameter warning.
-        (void)k;     // To suppress unused-parameter warning.
+        if (query.trimmed().isEmpty())
+        {
+            search_widget_->clear_results();
+            return;
+        }
+
+        if (!corpus_current_)
+        {
+            search_widget_->clear_results();
+            return;
+        }
+
+        auto results = processing_core_.search(query.toStdString(), k);
+        search_widget_->set_results(results);
+        status_label_->setText(QString("Search Completed - %1 result().").arg(results.size()));
     }
 
     void MainWindow::query_changed(const QString &query)
     {
-        // TODO
-        (void)query; // To suppress unused-parameter warning.
+        if (search_widget_->has_query())
+        {
+            search_widget_->set_search_enabled(true);
+        }
+        else
+        {
+            search_widget_->set_search_enabled(false);
+        }
     }
 
     void MainWindow::build_context_requested(int token_budget)
@@ -208,9 +228,26 @@ namespace aiws::gui
     void MainWindow::term_inspection_requested(const QString &term,
                                                const QString &chunk_id)
     {
-        // TODO
-        (void)term;     // To suppress unused-parameter warning.
-        (void)chunk_id; // To suppress unused-parameter warning.
+        if (!corpus_current_ || term.trimmed().isEmpty())
+        {
+            term_inspector_widget_->clear_statistics();
+            return;
+        }
+
+        int docFreq = processing_core_.document_frequency(term.toStdString());
+
+        bool hasTerm_Freq = false;
+        int termFreq = 0;
+        try
+        {
+            termFreq = processing_core_.term_frequency(term.toStdString(), chunk_id.toStdString());
+            hasTerm_Freq = true;
+        }
+        catch (std::invalid_argument)
+        {
+            hasTerm_Freq = false;
+        }
+        term_inspector_widget_->set_statistics(docFreq, hasTerm_Freq, termFreq);
     }
 
     void MainWindow::reset_application()
@@ -228,12 +265,14 @@ namespace aiws::gui
         bool has_documents = !workspace_.documents().empty();
 
         workspace_widget_->set_build_corpus_enabled(has_documents);
+        term_inspector_widget_->set_inspection_enabled(corpus_current_);
     }
 
     void MainWindow::invalidate_corpus()
     {
         workspace_widget_->set_corpus_status("Corpus: Not Built");
         workspace_widget_->set_build_corpus_enabled(false);
+        corpus_current_ = false;
 
         clear_processing_outputs();
     }
