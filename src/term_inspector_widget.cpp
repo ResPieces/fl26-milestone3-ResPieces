@@ -61,6 +61,7 @@ namespace aiws::gui
 
     void TermInspectorWidget::set_selected_chunk(const QString &chunk_id)
     {
+        clear_statistics();
         selected_chunk_id_ = chunk_id;
     }
 

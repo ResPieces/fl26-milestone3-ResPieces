@@ -14,8 +14,10 @@ namespace aiws::gui
     ContextWidget::ContextWidget(QWidget *parent) : QWidget(parent)
     {
         context_budget_slider_ = new QSlider(Qt::Horizontal, this);
-        context_budget_slider_->setRange(1, 500);
+        context_budget_slider_->setRange(50, 1000);
         context_budget_slider_->setValue(300);
+        context_budget_slider_->setSingleStep(50);
+        context_budget_slider_->setPageStep(50);
 
         budget_value_label_ = new QLabel("300", this);
         build_context_button_ = new QPushButton("Build Context", this);
@@ -50,41 +52,56 @@ namespace aiws::gui
 
     int ContextWidget::token_budget() const
     {
-        // TODO
-        return 0;
+        return context_budget_slider_->value();
     }
 
     void ContextWidget::set_build_context_enabled(bool enabled)
     {
-        // TODO
-        (void)enabled; // To suppress unused-parameter warning.
+        build_context_button_->setEnabled(enabled);
     }
 
     void ContextWidget::set_context(const std::vector<ContextItem> &items)
     {
-        // TODO
-        (void)items; // To suppress unused-parameter warning.
+        QString output;
+
+        for (const auto &item : items)
+        {
+            output += QString("Document: %1\n").arg(QString::fromStdString(item.document_id));
+            output += QString("Chunk: %1\n").arg(QString::fromStdString(item.chunk_id));
+            output += QString("Tokens: %1\n").arg(static_cast<qulonglong>(item.token_count));
+            output += QString("Score: %1\n").arg(item.score, 0, 'g', 12);
+            output += QString("Truncated: %1\n").arg(item.truncated ? "Yes" : "No");
+            output += QString("Text:\n%1\n\n").arg(QString::fromStdString(item.text));
+        }
+
+        context_text_->setPlainText(output);
     }
 
     void ContextWidget::clear_context()
     {
-        // TODO
+        context_text_->clear();
     }
 
     void ContextWidget::reset()
     {
-        // TODO
+        clear_context();
+        context_budget_slider_->setValue(300);
+        budget_value_label_->setText(QString::number(300));
+
+        set_build_context_enabled(false);
     }
 
     void ContextWidget::request_context()
     {
-        // TODO
+        if (!build_context_button_->isEnabled())
+            return;
+
+        emit build_context_requested(token_budget());
     }
 
     void ContextWidget::budget_changed(int value)
     {
-        // TODO
-        (void)value; // To suppress unused-parameter warning.
+        budget_value_label_->setText(QString::number(value));
     }
 
 } // namespace aiws::gui

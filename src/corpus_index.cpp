@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include "aiws/text_processor.hpp"
 
+#include <iostream>
+
 namespace aiws
 {
 
@@ -26,6 +28,7 @@ namespace aiws
             std::vector<TokenInfo> tokens = TextProcessor::tokenize(curChunk.text);
 
             chunk_by_id_[curChunk.id] = i;
+            // std::cout << "Adding chunk ID: " << curChunk.id << " at index: " << i << std::endl;
 
             // Loop through each Token
             for (TokenInfo &token : tokens)
@@ -102,13 +105,18 @@ namespace aiws
         if (it != postings_.end())
         {
 
+            // std::cout << "Searching for chunk ID: " << chunk_id << std::endl;
+
             auto chunkIt = chunk_by_id_.find(chunk_id);
+
+            // std::cout << "Found: " << (chunkIt != chunk_by_id_.end()) << std::endl;
 
             // Checks to see if the ID of the chunk we are looking at is in our postings
             if (chunkIt != chunk_by_id_.end())
             {
                 for (auto &posting : it->second)
                 {
+                    // std::cout << "In Loop" << std::endl;
                     if (posting.chunk_index == chunkIt->second)
                     {
                         return posting.frequency;

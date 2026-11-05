@@ -9,7 +9,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     aiws::gui::MainWindow window;
-    window.show();
+    window.resize();
+    window.show(900, 900);
 
     // qDebug() << "Window size:" << window.size();
     // qDebug() << "Window minimum size:" << window.minimumSize();

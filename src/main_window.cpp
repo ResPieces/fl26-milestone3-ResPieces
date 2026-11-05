@@ -17,12 +17,29 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
+#include <iostream>
+
 namespace aiws::gui
 {
 
     MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     {
         setWindowTitle("AI Workspace");
+
+        auto *title = new QWidget(this);
+        title->setStyleSheet(
+            "background-color: #037ffc;");
+
+        auto *title_layout = new QHBoxLayout(title);
+
+        auto *title_label = new QLabel("AI Workspace", title);
+        title_label->setStyleSheet(
+            "color: white;"
+            "font-size: 26px;"
+            "font-weight: bold;");
+
+        title_layout->addWidget(title_label);
+        title_layout->addStretch();
 
         // Create the main widgets.
         workspace_widget_ = new WorkspaceWidget(this);
@@ -31,7 +48,22 @@ namespace aiws::gui
         context_widget_ = new ContextWidget(this);
 
         reset_button_ = new QPushButton("Reset", this);
+        reset_button_->setStyleSheet(
+            "QPushButton {"
+            "    background-color: #fc9d03;" // Green background
+            "    color: white;"              // White text
+            "    border-radius: 5px;"
+            "    padding: 5px;"
+            "}");
+
         exit_button_ = new QPushButton("Exit", this);
+        exit_button_->setStyleSheet(
+            "QPushButton {"
+            "    background-color: #911600;" // Green background
+            "    color: white;"              // White text
+            "    border-radius: 5px;"
+            "    padding: 5px;"
+            "}");
         status_label_ = new QLabel("Ready", this);
 
         auto *hlayout = new QHBoxLayout;
@@ -50,6 +82,7 @@ namespace aiws::gui
         bottomlayout->addWidget(exit_button_);
 
         auto *main_layout = new QVBoxLayout;
+        main_layout->addWidget(title);
         main_layout->addWidget(workspace_widget_, 2);
         main_layout->addWidget(search_widget_, 2);
         main_layout->addLayout(hlayout, 2);
@@ -97,6 +130,11 @@ namespace aiws::gui
                 &SearchWidget::source_document_requested,
                 this,
                 &MainWindow::source_document_requested);
+
+        connect(search_widget_,
+                &SearchWidget::selected_chunk_changed,
+                term_inspector_widget_,
+                &TermInspectorWidget::set_selected_chunk);
 
         connect(context_widget_,
                 &ContextWidget::build_context_requested,
@@ -167,7 +205,8 @@ namespace aiws::gui
 
         corpus_current_ = true;
         status_label_->setText("Corpus Built Successfully");
-        workspace_widget_->set_corpus_status("Corpus: Built");
+        QString message = QString("Corpus: Ready - %1 Chunks").arg(processing_core_.chunk_count());
+        workspace_widget_->set_corpus_status(message);
         update_action_states();
     }
 
@@ -180,6 +219,8 @@ namespace aiws::gui
         workspace_widget_->show_selected_document(
             QString::fromStdString(document.title()),
             QString::fromStdString(document.text()));
+
+        update_action_states();
     }
 
     void MainWindow::search_requested(const QString &query, int k)
@@ -198,31 +239,44 @@ namespace aiws::gui
 
         auto results = processing_core_.search(query.toStdString(), k);
         search_widget_->set_results(results);
-        status_label_->setText(QString("Search Completed - %1 result().").arg(results.size()));
+        status_label_->setText(QString("Search Completed - %1 result(s).").arg(results.size()));
+        update_action_states();
     }
 
     void MainWindow::query_changed(const QString &query)
     {
-        if (search_widget_->has_query())
-        {
-            search_widget_->set_search_enabled(true);
-        }
-        else
-        {
-            search_widget_->set_search_enabled(false);
-        }
+        term_inspector_widget_->clear_statistics();
+        update_action_states();
     }
 
     void MainWindow::build_context_requested(int token_budget)
     {
-        // TODO
-        (void)token_budget; // To suppress unused-parameter warning.
+        if (!corpus_current_ || !search_widget_->has_query())
+            return;
+
+        auto items = processing_core_.build_context(
+            search_widget_->query().toStdString(),
+            search_widget_->result_count(),
+            static_cast<std::size_t>(token_budget));
+
+        context_widget_->clear_context();
+
+        context_widget_->set_context(items);
     }
 
     void MainWindow::source_document_requested(const QString &document_id)
     {
-        // TODO
-        (void)document_id; // To suppress unused-parameter warning.
+        term_inspector_widget_->clear_statistics();
+        const auto &documents = workspace_.documents();
+
+        for (int i = 0; i < documents.size(); ++i)
+        {
+            if (documents[i].id() == document_id.toStdString())
+            {
+                workspace_widget_->select_document(i);
+                break;
+            }
+        }
     }
 
     void MainWindow::term_inspection_requested(const QString &term,
@@ -237,22 +291,28 @@ namespace aiws::gui
         int docFreq = processing_core_.document_frequency(term.toStdString());
 
         bool hasTerm_Freq = false;
-        int termFreq = 0;
+        int termFreq = 1;
         try
         {
             termFreq = processing_core_.term_frequency(term.toStdString(), chunk_id.toStdString());
             hasTerm_Freq = true;
         }
-        catch (std::invalid_argument)
+        catch (const std::invalid_argument &e)
         {
             hasTerm_Freq = false;
         }
         term_inspector_widget_->set_statistics(docFreq, hasTerm_Freq, termFreq);
+
+        update_action_states();
     }
 
     void MainWindow::reset_application()
     {
-        // TODO
+        std::vector<Resettable *> myWidgets = {workspace_widget_, search_widget_, context_widget_, term_inspector_widget_};
+        for (auto *widget : myWidgets)
+        {
+            widget->reset();
+        }
     }
 
     void MainWindow::exit_application()
@@ -266,6 +326,21 @@ namespace aiws::gui
 
         workspace_widget_->set_build_corpus_enabled(has_documents);
         term_inspector_widget_->set_inspection_enabled(corpus_current_);
+
+        if (search_widget_->has_query())
+        {
+            search_widget_->set_search_enabled(true);
+
+            if (corpus_current_)
+            {
+                context_widget_->set_build_context_enabled(true);
+            }
+        }
+        else
+        {
+            search_widget_->set_search_enabled(false);
+            context_widget_->set_build_context_enabled(false);
+        }
     }
 
     void MainWindow::invalidate_corpus()
@@ -275,6 +350,7 @@ namespace aiws::gui
         corpus_current_ = false;
 
         clear_processing_outputs();
+        update_action_states();
     }
 
     void MainWindow::clear_processing_outputs()
