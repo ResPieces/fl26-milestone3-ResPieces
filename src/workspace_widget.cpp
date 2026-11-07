@@ -48,8 +48,8 @@ namespace aiws::gui
         workspace_right->addWidget(document_text_);
 
         auto *main_layout = new QHBoxLayout(this);
-        main_layout->addLayout(workspace_left, 1);
-        main_layout->addLayout(workspace_right, 1);
+        main_layout->addLayout(workspace_left);
+        main_layout->addLayout(workspace_right);
 
         build_corpus_button_->setEnabled(false);
 

@@ -83,10 +83,10 @@ namespace aiws::gui
 
         auto *main_layout = new QVBoxLayout;
         main_layout->addWidget(title);
-        main_layout->addWidget(workspace_widget_, 2);
-        main_layout->addWidget(search_widget_, 2);
-        main_layout->addLayout(hlayout, 2);
-        main_layout->addLayout(bottomlayout, 1);
+        main_layout->addWidget(workspace_widget_);
+        main_layout->addWidget(search_widget_);
+        main_layout->addLayout(hlayout);
+        main_layout->addLayout(bottomlayout);
 
         // resize(900, 900);
         // qDebug() << size();
@@ -195,6 +195,8 @@ namespace aiws::gui
 
         workspace_widget_->add_document(fileName);
 
+        status_label_->setText("Document added; rebuild corpus");
+
         invalidate_corpus();
         update_action_states();
     }
@@ -213,6 +215,13 @@ namespace aiws::gui
     void MainWindow::document_selected(int row)
     {
         const auto &documents = workspace_.documents();
+
+        if (row < 0 || static_cast<std::size_t>(row) >= documents.size())
+        {
+            workspace_widget_->clear_selected_document();
+            update_action_states();
+            return;
+        }
 
         const auto &document = documents[row];
 
@@ -262,6 +271,8 @@ namespace aiws::gui
         context_widget_->clear_context();
 
         context_widget_->set_context(items);
+
+        status_label_->setText(QString("Context built - %1 item(s).").arg(items.size()));
     }
 
     void MainWindow::source_document_requested(const QString &document_id)
@@ -277,6 +288,8 @@ namespace aiws::gui
                 break;
             }
         }
+
+        status_label_->setText("Source document selected");
     }
 
     void MainWindow::term_inspection_requested(const QString &term,
@@ -303,21 +316,39 @@ namespace aiws::gui
         }
         term_inspector_widget_->set_statistics(docFreq, hasTerm_Freq, termFreq);
 
+        status_label_->setText("Term Inspected");
+
         update_action_states();
     }
 
     void MainWindow::reset_application()
     {
-        std::vector<Resettable *> myWidgets = {workspace_widget_, search_widget_, context_widget_, term_inspector_widget_};
+        std::vector<Resettable *> myWidgets = {context_widget_, term_inspector_widget_, search_widget_, workspace_widget_};
         for (auto *widget : myWidgets)
         {
             widget->reset();
         }
+        // std::cout << "Widgets Reset" << std::endl;
+
+        workspace_.clear();
+        // std::cout << "Workspace Cleared" << std::endl;
+
+        invalidate_corpus();
+        // std::cout << "Corpus Invalidated" << std::endl;
+
+        update_action_states();
+        // std::cout << "Action States Updated" << std::endl;
+
+        status_label_->setText("Workspace Reset");
+        // std::cout << "Done" << std::endl;
     }
 
     void MainWindow::exit_application()
     {
-        // TODO
+        if (exit_callback_ != nullptr)
+        {
+            exit_callback_(this);
+        }
     }
 
     void MainWindow::update_action_states()

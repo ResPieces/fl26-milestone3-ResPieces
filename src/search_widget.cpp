@@ -36,6 +36,7 @@ namespace aiws::gui
         results_view_->setModel(result_model_);
         results_view_->setSelectionBehavior(QAbstractItemView::SelectRows);
         results_view_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        results_view_->horizontalHeader()->setStretchLastSection(true);
 
         selected_result_text_ = new QPlainTextEdit(this);
         selected_result_text_->setPlaceholderText("Select a result to inspect its details");
@@ -55,7 +56,7 @@ namespace aiws::gui
 
         auto *query_layout = new QHBoxLayout;
         query_layout->addWidget(query_label);
-        query_layout->addWidget(query_edit_, 1);
+        query_layout->addWidget(query_edit_);
         query_layout->addWidget(results_label);
         query_layout->addWidget(result_count_spin_);
         query_layout->addWidget(search_button_);
